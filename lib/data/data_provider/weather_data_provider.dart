@@ -7,8 +7,13 @@ class WeatherDataProvider {
     try {
       final res = await http.get(
         Uri.parse(
-            'http://api.openweathermap.org/data/2.5/forecast?q=$cityName,uk&APPID=$openWeatherAPIKey'),
+          'http://api.openweathermap.org/data/2.5/forecast?q=$cityName&appid=$openWeatherAPIKey',
+        ),
       );
+
+      if (res.statusCode != 200) {
+        throw "Failed to fetch weather data: ${res.statusCode}";
+      }
 
       return res.body;
     } catch (e) {
