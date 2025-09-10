@@ -56,7 +56,7 @@ class WeatherModel {
       rawList: map['list'],
     );
   }
-
+ 
 
   String toJson() => json.encode(toMap());
 
