@@ -20,13 +20,19 @@ class WeatherViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  /// fetches the weather of a cit name [cityName]
   Future<void> fetchWeather(String cityName) async {
+    //show progress bar
     _isLoading = true;
+    // resetting the error variable
     _errorMessage = null;
+    // notify listener of the above variable changes
     notifyListeners();
 
     try {
+      // call function getCurrentWeather() to get current weather for cityName
       final result = await weatherRepository.getCurrentWeather(cityName);
+      // initialize _weather with the results from getCurrentWeather
       _weather = result;
 
       _hourlyForecast = (result.rawList ?? [])
@@ -37,7 +43,9 @@ class WeatherViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
+      // hide progress bar
       _isLoading = false;
+      // notify listener of the above variable changes
       notifyListeners();
     }
   }

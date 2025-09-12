@@ -15,12 +15,17 @@ class WeatherScreen extends StatefulWidget {
 
 class _WeatherScreenState extends State<WeatherScreen> {
   @override
+  @override
   void initState() {
     super.initState();
+    // Schedule to run after the current synchronous work is done
     Future.microtask(() =>
-        Provider.of<WeatherViewModel>(context, listen: false)
-            .fetchWeather("Nairobi"));
+    // Get the WeatherViewModel instance from Provider without listening for updates
+    Provider.of<WeatherViewModel>(context, listen: false)
+    // Call the fetchWeather method to load weather data for "Nairobi"
+        .fetchWeather("Nairobi"));
   }
+
 
   @override
   Widget build(BuildContext context) {
