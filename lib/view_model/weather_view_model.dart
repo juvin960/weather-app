@@ -1,12 +1,15 @@
-import 'package:flutter/foundation.dart';
-import 'package:weather_app/models/weather_model.dart';
-import 'package:weather_app/models/forecast_model.dart';
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import '../models/weather_model.dart';
+import '../models/forecast_model.dart';
 import '../data/repository/weather_repo.dart';
 
 class WeatherViewModel extends ChangeNotifier {
   final WeatherRepository weatherRepository;
 
-  WeatherViewModel({required this.weatherRepository});
+  WeatherViewModel({required this.weatherRepository}) {
+    fetchWeatherByCurrentLocation(); // Auto-load on init
+  }
 
   WeatherModel? _weather;
   WeatherModel? get weather => _weather;
@@ -20,19 +23,14 @@ class WeatherViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  /// fetches the weather of a cit name [cityName]
+  // Fetch weather by city name
   Future<void> fetchWeather(String cityName) async {
-    //show progress bar
     _isLoading = true;
-    // resetting the error variable
     _errorMessage = null;
-    // notify listener of the above variable changes
     notifyListeners();
 
     try {
-      // call function getCurrentWeather() to get current weather for cityName
       final result = await weatherRepository.getCurrentWeather(cityName);
-      // initialize _weather with the results from getCurrentWeather
       _weather = result;
 
       _hourlyForecast = (result.rawList ?? [])
@@ -43,10 +41,62 @@ class WeatherViewModel extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
-      // hide progress bar
       _isLoading = false;
-      // notify listener of the above variable changes
       notifyListeners();
     }
+  }
+
+  // Fetch weather by device GPS
+  Future<void> fetchWeatherByCurrentLocation() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final position = await _getCurrentLocation();
+
+      final result = await weatherRepository.getCurrentWeatherByLocation(
+        position.latitude,
+        position.longitude,
+      );
+
+      _weather = result;
+
+      _hourlyForecast = (result.rawList ?? [])
+          .skip(1)
+          .take(5)
+          .map((map) => HourlyForecast.fromMap(map))
+          .toList();
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // 🔹 Helper: Get current device location
+  Future<Position> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Location services are disabled');
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      throw Exception('Location permission denied');
+    }
+
+    // New geolocator API uses LocationSettings
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+      ),
+    );
   }
 }

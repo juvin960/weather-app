@@ -16,11 +16,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => WeatherViewModel(
-        weatherRepository: WeatherRepository(
-          WeatherDataProvider(),
-        ),
-      ),
+      create: (context) =>
+          WeatherViewModel(
+            weatherRepository: WeatherRepository(
+              weatherDataProvider: WeatherDataProvider(),
+            ),
+          ),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData.dark(useMaterial3: true),
